@@ -1,0 +1,133 @@
+< !DOCTYPE html >
+    <html lang="en">
+
+        <head>
+            <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>JavaScript Infinite Scroll - Quotes</title>
+                    <!-- <link rel="stylesheet" href="css/style.css"> -->
+                    </head>
+
+                    <body>
+
+                      // remove --ng-model if not using with angular js
+
+                        <input type="hidden" name="first name" id="id" value="{{id}}" ng-model='id'>
+                            <script src="https://unpkg.com/moment">
+                            </script>
+                            <div class="card" id="scrollCard"
+                                style="min-width:956px; min-height:500px;max-height:443px;overflow-y: scroll; margin: 15px; margin-top: 0px;">
+                                <div class="card-body">
+                                    <div class="list-feed quotes">
+                                    </div>
+                                    <div class="loader">
+                                        <div></div>
+                                        <div></div>
+                                        <div></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </body>
+
+                </html>
+                <script>
+                    $(document).ready(function () {
+        try {
+            const quotesEl = document.querySelector('.quotes');
+                    const loader = document.querySelector('.loader');
+                    let currentPage = 1;
+                    const limit = 10;
+                    let total = 0;
+            const getQuotes = async (currentPage, limit) => {
+                try {
+                    const API_URL = `/abc.com?&page=${currentPage}&limit=${limit}`;
+                    const response = await fetch(API_URL);
+                    if (!response.ok) {
+                        throw new Error(`An error occurred: ${response.status}`);
+                    }
+                    return await response.json();
+                } catch (error) {
+                        console.log(error)
+                    }
+            }
+
+            // show the quotes
+            const showQuotes = (quotes) => {
+
+                        quotes.forEach(quote => {
+                            const quoteEl = document.createElement('div');
+
+                            quoteEl.classList.add('list-feed-item');
+                            quoteEl.classList.add('border-warning-400')
+
+                            quoteEl.innerHTML = `<div class="text-muted font-size-sm ml-2">${quote.id}}</div>
+                        <div class="font-size-sm ml-2">${quote.desc}<a</div>
+                            </div>`
+
+                            quotesEl.appendChild(quoteEl);
+
+                        });
+            };
+            const hideLoader = () => {
+
+                        loader.classList.remove('show');
+            };
+
+            const showLoader = () => {
+                        loader.classList.add('show');
+            };
+
+            const hasMoreQuotes = (page, limit, total) => {
+
+                const startIndex = (page - 1) * limit + 1;
+                    return total === 0 || startIndex < total;
+            };
+
+            // load quotes
+            const loadQuotes = async (page, limit) => {
+
+                        // show the loader
+                        showLoader();
+
+                // 0.5 second later
+                setTimeout(async () => {
+                    try {
+                        // if having more quotes to fetch
+                        if (hasMoreQuotes(page, limit, total)) {
+                            // call the API to get quotes
+                            const response = await getQuotes(page, limit);
+                    // show quotes
+                    showQuotes(response.data);
+                    // update the total
+                    total = response.total;
+                        }
+                    } catch (error) {
+                        console.log(error.message);
+                    } finally {
+                        hideLoader();
+                    }
+                }, 500)
+            }
+
+
+            document.getElementById('scrollCard').addEventListener('scroll', () => {
+                const scrollTop = document.getElementById('scrollCard').scrollTop;
+                    const scrollHeight = document.getElementById('scrollCard').scrollHeight; // added
+                    const clientHeight = document.getElementById('scrollCard').clientHeight;
+
+                if (scrollTop + clientHeight >= scrollHeight - 5 &&
+                    hasMoreQuotes(currentPage, limit, total)) {
+                        currentPage++;
+                    loadQuotes(currentPage, limit);
+                }
+            }, {
+                        passive: true
+            });
+
+                    loadQuotes(currentPage, limit);
+        } catch (error) {
+           throw error;
+        }
+    });
+                </script>
